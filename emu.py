@@ -1,5 +1,6 @@
 from unicorn import *
 from unicorn.arm_const import *
+from udbserver import udbserver
 
 blocks_log = open('out/blocks.log', 'w')
 dummy_log = open('out/dummy.log', 'w')
@@ -24,18 +25,37 @@ def dummy_map(uc, name, addr, lenght):
 
     uc.mmio_map(addr, lenght, dummy_read, None, dummy_write, None)
 
+def mirror_map(uc, addr, lenght, mirror_addr):
+    def mirror_read(mu, offset, size, user_data) -> int:
+        return int.from_bytes(mu.mem_read(mirror_addr + offset, size), byteorder='little', signed=False)
+
+    def mirror_write(mu, offset, size, value: int, user_data):
+        mu.mem_write(mirror_addr + offset, value.to_bytes(size, byteorder='little', signed=False))
+
+    uc.mmio_map(addr, lenght, mirror_read, None, mirror_write, None)
+
 
 # memory regions
 ROM1_ADDR =         0x0
-ROM2_ADDR =         0x04000000
 ROM1_REMAP_ADDR =   0x20000000
+ROM2_ADDR =         0x04000000
+ROM2_REMAP_ADDR =   0x24000000
 ROM_LENGHT = 0x800000
 
 RAM_ADDR = 0x40000000
-RAM_LENGHT = 512 * (1024 * 1024) # 512 MB
+RAM_REMAP0_ADDR = 0x50000000
+RAM_REMAP1_ADDR = 0x60000000
+RAM_REMAP2_ADDR = 0x70000000
+RAM_LENGHT = 128 * (1024 * 1024) # 128 MB
 
-UNKRAM_ADDR = 0x80000000
-UNKRAM_LENGHT = 0x4000
+#TCM:
+#  instr TCM of 32KB at 80000000
+#  data TCM of 4KB at 0x80008000
+INSTR_TCM_ADDR = 0x80000000
+INSTR_TCM_LENGHT = 32 * (1024) # 32 KB
+
+DATA_TCM_ADDR = 0x80008000
+DATA_TCM_LENGHT = 4 * (1024) # 4 KB
 
 CORE_ADDR = 0xd0000000
 CORE_LENGHT = 0x400000
@@ -96,7 +116,11 @@ mu = Uc(UC_ARCH_ARM, UC_MODE_ARM1176)
 
 # map memory regions
 mu.mem_map(RAM_ADDR, RAM_LENGHT)
-mu.mem_map(UNKRAM_ADDR, UNKRAM_LENGHT)
+mirror_map(mu, RAM_REMAP0_ADDR, RAM_LENGHT, RAM_ADDR)
+mirror_map(mu, RAM_REMAP1_ADDR, RAM_LENGHT, RAM_ADDR)
+mirror_map(mu, RAM_REMAP2_ADDR, RAM_LENGHT, RAM_ADDR)
+mu.mem_map(INSTR_TCM_ADDR, INSTR_TCM_LENGHT)
+mu.mem_map(DATA_TCM_ADDR, DATA_TCM_LENGHT)
 mu.mem_map(CORE_ADDR, CORE_LENGHT)
 dummy_map(mu, "IO_UNK0", IO_UNK0_ADDR, IO_UNK0_LENGHT)
 dummy_map(mu, "IO_UNK5", IO_UNK5_ADDR, IO_UNK5_LENGHT)
@@ -208,8 +232,9 @@ mu.mmio_map(IO_UNKF0071_ADDR, IO_UNKF0071_LENGHT, unkf0071_read, None, unkf0071_
 
 # load roms
 load_mem_file(mu, ROM1_ADDR, ROM_LENGHT, 'roms/rom1.bin')
-load_mem_file(mu, ROM1_REMAP_ADDR, ROM_LENGHT, 'roms/rom1.bin')
+mirror_map(mu, ROM1_REMAP_ADDR, ROM_LENGHT, ROM1_ADDR)
 load_mem_file(mu, ROM2_ADDR, ROM_LENGHT, 'roms/rom2.bin')
+mirror_map(mu, ROM2_REMAP_ADDR, ROM_LENGHT, ROM2_ADDR)
 
 def hook_block(uc, address, size, user_data):
     blocks_log.write("0x%x\n" %address)
@@ -220,7 +245,10 @@ def hook_block(uc, address, size, user_data):
 def hook_code(uc, address, size, user_data):
     if address == 0x11940:
         print("Emulation stopped at 0x%x" %address)
+        #udbserver(mu, 1234, 0)
         uc.emu_stop()
+    #elif address == 0x118a0:
+    #    udbserver(mu, 1234, 0)
     #elif address == 0x11940:
     #    uc.hook_add(UC_HOOK_BLOCK, hook_block)
     elif address == 0x12a4:
@@ -258,6 +286,7 @@ mu.hook_add(UC_HOOK_CODE, hook_code)
 
 # start emulation
 try:
+    #udbserver(mu, 1234, 0)
     mu.emu_start(ROM1_ADDR, ROM_LENGHT)#, UC_SECOND_SCALE * 10)
 except UcError as e:
     print("ERROR: %s" % e)
@@ -266,6 +295,5 @@ except UcError as e:
 
 # dump ram
 dump_mem_file(mu, RAM_ADDR, RAM_LENGHT, 'out/ram.bin')
-dump_mem_file(mu, UNKRAM_ADDR, UNKRAM_LENGHT, 'out/unkram.bin')
 
 blocks_log.close()

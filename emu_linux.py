@@ -228,7 +228,7 @@ mu.mmio_map(IO_UNKF0071_ADDR, IO_UNKF0071_LENGHT, unkf0071_read, None, unkf0071_
 
 # load roms
 #load_mem_file(mu, ROM1_ADDR, ROM_LENGHT, 'roms/rom1.bin')
-load_mem_file(mu, 0x40007bc0, ROM_LENGHT, 'roms/rom1.bin', 0x110000, True)
+load_mem_file(mu, 0x40007bc0, ROM_LENGHT, 'roms/ic1_lp_t.bin', 0x110000, True)
 load_mem_file(mu, ROM1_REMAP_ADDR, ROM_LENGHT, 'roms/rom1.bin')
 load_mem_file(mu, ROM2_ADDR, ROM_LENGHT, 'roms/rom2.bin')
 
@@ -240,12 +240,10 @@ def hook_block(uc, address, size, user_data):
 #mu.hook_add(UC_HOOK_BLOCK, hook_block)
 
 def hook_code(uc, address, size, user_data):
-    
-    # print values of registers
-    print(">>> CPU context")
-    for reg in range(UC_ARM_REG_R0, UC_ARM_REG_R12 + 1):
-        rnum = reg - UC_ARM_REG_R0
-        print(">>> R%d = 0x%x" %(rnum, mu.reg_read(reg)))
+    if address == 0xc000e18c:
+        # stop
+        mu.emu_stop()
+        return False
 
 #mu.hook_add(UC_HOOK_CODE, hook_code)
 
@@ -256,8 +254,8 @@ def hook_exception(mu, intno, data):
 
     # skip instruction
     mu.reg_write(UC_ARM_REG_PC, mu.reg_read(UC_ARM_REG_PC) + 4)
-    #udbserver(mu, 1234, 0)
-    return True
+    mu.emu_stop()
+    return False
 
 mu.hook_add(UC_HOOK_INTR, hook_exception)
 
@@ -265,7 +263,7 @@ mu.hook_add(UC_HOOK_INTR, hook_exception)
 # start emulation
 try:
     udbserver(mu, 1234, 0)
-    mu.emu_start(0x40007bc0, 0x42000000)#, UC_SECOND_SCALE * 120)
+    mu.emu_start(0x40007bc0, 0xc0000000)#, UC_SECOND_SCALE * 120)
 except UcError as e:
     print("ERROR: %s" % e)
     # print pc
