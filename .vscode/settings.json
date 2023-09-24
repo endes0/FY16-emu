@@ -1,0 +1,6 @@
+{
+    "rust-analyzer.linkedProjects": [
+        "./fy16-emu-rust/Cargo.toml",
+        "./fy16-emu-rust/Cargo.toml"
+    ]
+}

@@ -1,0 +1,10 @@
+[package]
+name = "fy16-emu-rust"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+udbserver = { git = "https://github.com/bet4it/udbserver.git" }
+unicorn-engine = { version = "2.0.1", features = ["dynamic_linkage"] }
