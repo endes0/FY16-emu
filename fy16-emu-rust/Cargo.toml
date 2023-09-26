@@ -6,5 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+log = "0.4.20"
+simplelog = "0.12.1"
 udbserver = { git = "https://github.com/bet4it/udbserver.git" }
 unicorn-engine = { version = "2.0.1", features = ["dynamic_linkage"] }

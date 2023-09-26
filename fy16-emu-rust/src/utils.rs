@@ -38,16 +38,14 @@ pub fn dummy_map(mc: &mut Unicorn<()>, name: &'static str, start: u64, length: u
     mc.mmio_map(start, length, Some(dummy_read), Some(dummy_write)).expect("failed to dummy map");
 }
 
-pub fn load_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'static str, offset: Option<u64>, is_mapped: Option<bool>) {
+pub fn load_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'static str, offset: Option<u64>, is_mapped: bool) {
     // Open file
     let mut file = File::open(path).expect("failed to open file");
     if let Some(offset) = offset {
         file.seek(std::io::SeekFrom::Start(offset)).expect("failed to seek file");
     }
-    if let Some(is_mapped) = is_mapped {
-        if is_mapped {
-            mc.mem_map(addr, length, Permission::ALL).expect("failed to map memory");
-        }
+    if !is_mapped {
+        mc.mem_map(addr, length, Permission::ALL).expect("failed to map memory");
     }
     let mut bytes = Vec::new();
     file.read_to_end(&mut bytes).expect("failed to read file");
