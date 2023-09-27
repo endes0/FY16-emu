@@ -5,7 +5,7 @@ use simplelog::*;
 
 use std::fs::File;
 
-use crate::utils::dummy_map;
+use crate::utils::{Module, dummy_map};
 
 mod mem_map;
 mod utils;
@@ -48,19 +48,18 @@ fn main() {
     emu.add_mem_hook(HookType::MEM_INVALID, 1, 0, hook_mem_invalid).expect("failed to add memory hook");
     emu.add_code_hook(1, 0, hook_code).expect("failed to add code hook");
 
-    let modules: Vec<&dyn utils::Module> = vec![
-        &modules::serial::Serial {},
-        &modules::unk3::Unk3 {},
-        &modules::unk4::Unk4 {},
-        &modules::unk8::Unk8 {},
-        &modules::unkf71::Unkf71 {},
-        //&modules::ehci::Ehci {},
-        //&modules::ehci_host::EhciHost {},
-    ];
+    // Load modules
+    let serial = modules::serial::Serial {};
+    let unk3 = modules::unk3::Unk3 {};
+    let unk4 = modules::unk4::Unk4 {};
+    let unk8 = modules::unk8::Unk8 {};
+    let unk71 = modules::unkf71::Unkf71::new();
 
-    for module in modules {
-        module.load(emu);
-    }
+    serial.load(emu);
+    unk3.load(emu);
+    unk4.load(emu);
+    unk8.load(emu);
+    unk71.load(emu);
 
     // Load roms
     utils::load_mem_file(emu, crate::mem_map::ROM1_START, crate::mem_map::ROM_LENGTH, "roms/rom1.bin", None, false);

@@ -25,7 +25,7 @@ impl Unk3 {
 }
 
 impl Module for Unk3 {
-    fn load(&self, mc: &mut Unicorn<()>) {
+    fn load(self, mc: &mut Unicorn<()>) {
         mc.mmio_map(crate::mem_map::IO_UNK3_START, crate::mem_map::IO_UNK3_LENGTH, Some(Self::unk_read), Some(Self::unk_write)).expect("failed to map unk3");
     }
 }

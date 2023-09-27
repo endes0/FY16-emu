@@ -25,7 +25,7 @@ impl Unk8 {
 }
 
 impl Module for Unk8 {
-    fn load(&self, mc: &mut Unicorn<()>) {
+    fn load(self, mc: &mut Unicorn<()>) {
         mc.mmio_map(crate::mem_map::IO_UNK8_START, crate::mem_map::IO_UNK8_LENGTH, Some(Self::unk_read), Some(Self::unk_write)).expect("failed to map unk8");
     }
 }

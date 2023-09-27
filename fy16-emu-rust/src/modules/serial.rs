@@ -29,7 +29,7 @@ impl Serial {
 }
 
 impl Module for Serial {
-    fn load(&self, mc: &mut Unicorn<()>) {
+    fn load(self, mc: &mut Unicorn<()>) {
         mc.mmio_map(crate::mem_map::IO_SERIAL_START, crate::mem_map::IO_SERIAL_LENGTH, Some(Self::serial_read), Some(Self::serial_write)).expect("failed to map serial");
     }
 }

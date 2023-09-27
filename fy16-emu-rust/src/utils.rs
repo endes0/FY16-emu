@@ -54,5 +54,5 @@ pub fn load_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'sta
 }
 
 pub trait Module {
-    fn load(&self, mc: &mut Unicorn<()>);
+    fn load(self, mc: & mut Unicorn<()>);
 }
