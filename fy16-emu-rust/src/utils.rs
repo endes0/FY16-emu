@@ -1,7 +1,8 @@
 
 
 use unicorn_engine::Unicorn;
-use unicorn_engine::unicorn_const::{Permission};
+use unicorn_engine::unicorn_const::Permission;
+use log::trace;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -23,16 +24,16 @@ pub fn mirror_map(mc: &mut Unicorn<()>, start: u64, length: usize, mirror_addr:u
     mc.mmio_map(start, length, Some(mirror_read), Some(mirror_write)).expect("failed to mirror map");   
 }
 
-pub fn dummy_map(mc: &mut Unicorn<()>, name: &'static str, start: u64, length: usize) {
+pub fn dummy_map(mc: &mut Unicorn<()>, name: String, start: u64, length: usize) {
 
-    //let name2 =; //name.clone(); // TODO: find a better way to do this
-    let dummy_read = move |_uc: &mut Unicorn<()>, addr: u64, size: usize| -> u64 {
-        println!("{}: read from 0x{:x} (size: {})", name, addr, size);
+    let name2 = name.clone(); // TODO: find a better way to do this
+    let dummy_read = move |uc: &mut Unicorn<()>, addr: u64, _size: usize| -> u64 {
+        trace!("{}: read from 0x{:x} (PC: {:x})", name, addr, uc.reg_read(unicorn_engine::RegisterARM::PC).unwrap());
         0
     };
 
-    let dummy_write = move |_uc: &mut Unicorn<()>, addr: u64, size: usize, value: u64| {
-        println!("{}: write to 0x{:x} (size: {}) = 0x{:x}", name, addr, size, value);
+    let dummy_write = move |uc: &mut Unicorn<()>, addr: u64, _size: usize, value: u64| {
+        trace!("{}: write to 0x{:x} = 0x{:x}  (PC: {:x})", name2, addr, value, uc.reg_read(unicorn_engine::RegisterARM::PC).unwrap());
     };
 
     mc.mmio_map(start, length, Some(dummy_read), Some(dummy_write)).expect("failed to dummy map");

@@ -71,7 +71,7 @@ use crate::utils;
     pub const IO_UNK3_START: u64 = 0xf0000000;
     pub const IO_UNK3_LENGTH: usize = 0x1000;
 
-    pub const IO_UNKF0071_START: u64 = 0xf0001000;
+    pub const IO_UNKF0071_START: u64 = 0xf0071000;
     pub const IO_UNKF0071_LENGTH: usize = 0x1000;
 
     pub const INT_REGS_START: u64 = 0xf0080000;
@@ -94,18 +94,18 @@ use crate::utils;
         mc.mem_map(INSTR_TCM_START, INSTR_TCM_LENGTH, Permission::ALL).expect("failed to map instr TCM");
         mc.mem_map(DATA_TCM_START, DATA_TCM_LENGTH, Permission::ALL).expect("failed to map data TCM");
         mc.mem_map(CORE_START, CORE_LENGTH, Permission::ALL).expect("failed to map core");
-        utils::dummy_map(mc, "IO_UNK0", IO_UNK0_START, IO_UNK0_LENGTH);
-        utils::dummy_map(mc, "IO_EHCI_HOST", IO_EHCI_HOST_START, IO_EHCI_HOST_LENGTH);
-        utils::dummy_map(mc, "IO_UNK5", IO_UNK5_START, IO_UNK5_LENGTH);
-        utils::dummy_map(mc, "IO_UNK9", IO_UNK9_START, IO_UNK9_LENGTH);
-        utils::dummy_map(mc, "IO_EHCI", IO_EHCI_START, IO_EHCI_LENGTH);
-        utils::dummy_map(mc, "IO_UNK1", IO_UNK1_START, IO_UNK1_LENGTH);
-        utils::dummy_map(mc, "IO_UNK2", IO_UNK2_START, IO_UNK2_LENGTH);
-        utils::dummy_map(mc, "IO_UNK6", IO_UNK6_START, IO_UNK6_LENGTH);
-        utils::dummy_map(mc, "IO_UNK7", IO_UNK7_START, IO_UNK7_LENGTH);
+        utils::dummy_map(mc, "IO_UNK0".to_string(), IO_UNK0_START, IO_UNK0_LENGTH);
+        utils::dummy_map(mc, "IO_EHCI_HOST".to_string(), IO_EHCI_HOST_START, IO_EHCI_HOST_LENGTH);
+        utils::dummy_map(mc, "IO_UNK5".to_string(), IO_UNK5_START, IO_UNK5_LENGTH);
+        utils::dummy_map(mc, "IO_UNK9".to_string(), IO_UNK9_START, IO_UNK9_LENGTH);
+        utils::dummy_map(mc, "IO_EHCI".to_string(), IO_EHCI_START, IO_EHCI_LENGTH);
+        utils::dummy_map(mc, "IO_UNK1".to_string(), IO_UNK1_START, IO_UNK1_LENGTH);
+        utils::dummy_map(mc, "IO_UNK2".to_string(), IO_UNK2_START, IO_UNK2_LENGTH);
+        utils::dummy_map(mc, "IO_UNK6".to_string(), IO_UNK6_START, IO_UNK6_LENGTH);
+        utils::dummy_map(mc, "IO_UNK7".to_string(), IO_UNK7_START, IO_UNK7_LENGTH);
         mc.mem_map(MSG_RAM_START, MSG_RAM_LENGTH, Permission::ALL).expect("failed to map msg ram");
-        utils::dummy_map(mc, "INT_REGS", INT_REGS_START, INT_REGS_LENGTH);
-        utils::dummy_map(mc, "SLFU3", IO_SFLU3_START, IO_SFLU3_LENGTH);
+        utils::dummy_map(mc, "INT_REGS".to_string(), INT_REGS_START, INT_REGS_LENGTH);
+        utils::dummy_map(mc, "SLFU3".to_string(), IO_SFLU3_START, IO_SFLU3_LENGTH);
     }
 
 //}
