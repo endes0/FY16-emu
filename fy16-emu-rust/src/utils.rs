@@ -53,6 +53,13 @@ pub fn load_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'sta
     mc.mem_write(addr, &bytes).expect("failed to write memory");
 }
 
+pub fn dump_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'static str) {
+    // Create file
+    let mut file = File::create(path).expect("failed to create file");
+    let data = mc.mem_read_as_vec(addr, length).expect("failed to read memory");
+    file.write_all(&data).expect("failed to write file");
+}
+
 pub trait Module {
     fn load(self, mc: & mut Unicorn<()>);
 }

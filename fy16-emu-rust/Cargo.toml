@@ -8,5 +8,11 @@ edition = "2021"
 [dependencies]
 log = "0.4.20"
 simplelog = "0.12.1"
-udbserver = { git = "https://github.com/bet4it/udbserver.git" }
-unicorn-engine = { version = "2.0.1", features = ["dynamic_linkage"] }
+#udbserver = { git = "https://github.com/bet4it/udbserver.git" }
+unicorn-engine = { version = "2.0.2", features = ["dynamic_linkage"]}
+strum = "0.25"
+strum_macros = "0.25"
+
+[patch.crates-io]
+unicorn-engine = { git = "https://github.com/unicorn-engine/unicorn.git", branch = "dev" }
+
