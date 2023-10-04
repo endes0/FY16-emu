@@ -11,7 +11,15 @@ def decode_entry(e: bytes, va: int, continuos: bool) -> bool:
     if e_type == 0:
         print("0x%08x: Fault" % (va))
     elif e_type == 1:
-        print("0x%08x: Coarse page table" % (va))
+        # table_baddr 31:10
+        table_baddr = e[3] << 24 | ((e[2] & 0xff) << 16) | ((e[1] & 0xFC) << 8)
+        # P 9
+        p = (e[1] >> 1) & 0x1
+        # domain 8:5
+        domain = e[0] >> 5
+        # SBZ 4:2
+        sbz = (e[0] >> 2) & 0x7
+        print("0x%08x: Coarse page table in %08x. P: 0x%x. Domain: 0x%x. SBZ: 0x%x" % (va, table_baddr, p, domain, sbz))
     elif e_type == 2:
         # baddr 31:20
         baddr = e[3] << 24 | ((e[2] & 0xf0) << 16)
