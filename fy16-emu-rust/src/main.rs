@@ -3,6 +3,10 @@ use unicorn_engine::{Unicorn, RegisterARM};
 use unicorn_engine::unicorn_const::{Arch, Mode, uc_error, HookType, MemType};
 use simplelog::*;
 
+#[macro_use]
+extern crate num_derive;
+extern crate num;
+
 use std::fs::File;
 
 use crate::utils::{Module, dummy_map};
@@ -37,8 +41,6 @@ fn hook_code(uc: &mut Unicorn<()>, address: u64, _size: u32) {
         // Crappy skip hack
         0x11000 => {uc.reg_write(RegisterARM::PC, 0x11010).expect("failed to write register"); println!("Skip tcm")}, //Skip TCM enable
         0x1551c => uc.reg_write(RegisterARM::PC, 0x15544).expect("failed to write register"),
-        0xffff0064 => println!("PC: 0x{:x} R12: {:x}", address, uc.reg_read(RegisterARM::R12).unwrap()),
-        //0x80000000..=0xFFFFFFFF => println!("PC: 0x{:x}", address),
         _ => {}
     }
 }
@@ -67,7 +69,8 @@ fn hook_intr(uc: &mut Unicorn<()>, intno: u32) {
             //utils::dump_mem_file(uc, mem_map::INSTR_TCM_START, mem_map::INSTR_TCM_LENGTH, "tcm.bin")
         },
         4 => {
-            error!("Skipping interrupt 4 (Data abort)");
+            error!("Skipping interrupt 4 (Data abort) (PC: {:x})", uc.reg_read(RegisterARM::PC).unwrap());
+            udbserver::udbserver(uc, 1234, 0).expect("Failed to start udbserver");
             uc.reg_write(RegisterARM::PC, uc.reg_read(RegisterARM::PC).unwrap() + 4).expect("failed to write register");
         },
         _ => {
