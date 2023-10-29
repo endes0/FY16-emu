@@ -117,7 +117,7 @@ use crate::utils;
         utils::dummy_map(mc, "IO_UNK7".to_string(), IO_UNK7_START, IO_UNK7_LENGTH);
         mc.mem_map(MSG_RAM_START, MSG_RAM_LENGTH, Permission::ALL).expect("failed to map msg ram");
         utils::dummy_map(mc, "INT_IDC".to_string(), INT_IDC_START, INT_IDC_LENGTH);
-        utils::dummy_map(mc, "SLFU3".to_string(), IO_SFLU3_START, IO_SFLU3_LENGTH);
+        //utils::dummy_map(mc, "SLFU3".to_string(), IO_SFLU3_START, IO_SFLU3_LENGTH);
         utils::dummy_map(mc, "SPIU".to_string(), IO_SPIU_START, IO_SPIU_LENGTH);
         utils::dummy_map(mc, "FLASH_BASE".to_string(), FLASH_BASE_START, FLASH_BASE_LENGTH);
     }

@@ -15,6 +15,7 @@ strum_macros = "0.25"
 num-derive = "0.4.1"
 num-traits = "0.2.17"
 num = "0.4.1"
+bitfield = "0.14.0"
 
 [patch.crates-io]
 unicorn-engine = { git = "https://github.com/unicorn-engine/unicorn.git", branch = "dev" }

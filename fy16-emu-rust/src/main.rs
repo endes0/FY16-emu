@@ -7,6 +7,9 @@ use simplelog::*;
 extern crate num_derive;
 extern crate num;
 
+#[macro_use]
+extern crate bitfield;
+
 use std::fs::File;
 
 use crate::utils::{Module, dummy_map};
@@ -119,12 +122,14 @@ fn main() {
     let unk4 = modules::unk4::Unk4 {};
     let unk8 = modules::unk8::Unk8 {};
     let unk71 = modules::unkf71::Unkf71::new();
+    let sflu = modules::sflu::Sflu::new();
 
     serial.load(emu);
     unk3.load(emu);
     unk4.load(emu);
     unk8.load(emu);
     unk71.load(emu);
+    sflu.load(emu);
 
     // Load roms
     utils::load_mem_file(emu, crate::mem_map::ROM1_START, crate::mem_map::ROM_LENGTH, "roms/rom1.bin", None, false);
