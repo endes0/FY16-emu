@@ -1,4 +1,4 @@
-use log::{error, warn};
+use log::{error, trace, warn};
 use simplelog::*;
 use unicorn_engine::unicorn_const::{uc_error, Arch, HookType, MemType, Mode};
 use unicorn_engine::{RegisterARM, Unicorn};
@@ -12,9 +12,11 @@ extern crate bitfield;
 
 use std::fs::File;
 
+use crate::tkernel_utils::{TkFunIds, AltTkFunIds};
 use crate::utils::{dummy_map, Module};
 
 mod mem_map;
+mod tkernel_utils;
 mod utils;
 
 mod modules;
@@ -83,6 +85,10 @@ fn hook_code(uc: &mut Unicorn<()>, address: u64, _size: u32) {
             (uc.reg_read(RegisterARM::R0).unwrap() - uc.reg_read(RegisterARM::R1).unwrap()),
             uc.reg_read(RegisterARM::R1).unwrap()
         ),
+        0x45e26b84 => println!(
+            "tkernel progress: {}",
+            uc.reg_read(RegisterARM::R0).unwrap()
+        ),
         //0x15c08 => println!("FUN_00015c08: addr 0x{:x}-0x{:x} len {:x}", uc.reg_read(RegisterARM::R0).unwrap(), uc.reg_read(RegisterARM::R1).unwrap(), uc.reg_read(RegisterARM::R2).unwrap()),
         /*0x164dc => {
             let mem = uc.mem_read_as_vec(uc.reg_read(RegisterARM::R0).unwrap(), 4).unwrap();
@@ -146,12 +152,22 @@ fn hook_intr(uc: &mut Unicorn<()>, intno: u32) {
         2 => {
             let pc = uc.reg_read(RegisterARM::PC).unwrap() - 4;
             let cpsr = uc.reg_read(RegisterARM::CPSR).unwrap();
+            let r1 = uc.reg_read(RegisterARM::R1).unwrap();
             let vals = uc.mem_read_as_vec(pc, 3).unwrap();
             let val = (vals[0] as u32) | ((vals[1] as u32) << 8) | ((vals[2] as u32) << 16);
-            warn!(
-                "Software interrupt 0x{:x} (PC 0x{:x}, CPSR: 0x{:x})",
-                val, pc, cpsr
-            );
+
+            if val == 0x6 {
+                let funId = num::FromPrimitive::from_u64(r1).unwrap_or(TkFunIds::None);
+                trace!("T-Kernel call(0x6) {} (FUNID: 0x{:x})", funId, r1);
+            } else if val == 0xa {
+                let funId = num::FromPrimitive::from_u64(r1).unwrap_or(AltTkFunIds::None);
+                trace!("T-Kernel call(0x10) {} (FUNID: 0x{:x})", funId, r1);
+            } else {
+                warn!(
+                    "Software interrupt 0x{:x} (PC 0x{:x}, FUNID: 0x{:x})",
+                    val, pc, r1
+                );
+            }
 
             // copy cpsr to spsr
             uc.reg_write(RegisterARM::SPSR, cpsr)
@@ -175,12 +191,10 @@ fn hook_intr(uc: &mut Unicorn<()>, intno: u32) {
         }
         4 => {
             error!(
-                "Skipping interrupt 4 (Data abort) (PC: {:x})",
+                "pausing at interrupt 4 (Data abort) (PC: {:x})",
                 uc.reg_read(RegisterARM::PC).unwrap()
             );
             udbserver::udbserver(uc, 1234, 0).expect("Failed to start udbserver");
-            uc.reg_write(RegisterARM::PC, uc.reg_read(RegisterARM::PC).unwrap() + 4)
-                .expect("failed to write register");
         }
         _ => {
             error!(
