@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 log = "0.4.20"
 simplelog = "0.12.1"
-udbserver = "0.1.0"
+#udbserver = "0.1.0"
 unicorn-engine = { version = "2.0.2", features = ["dynamic_linkage"]}
 strum = "0.25"
 strum_macros = "0.25"
@@ -19,5 +19,5 @@ bitfield = "0.14.0"
 
 [patch.crates-io]
 unicorn-engine = { git = "https://github.com/unicorn-engine/unicorn.git", branch = "dev" }
-udbserver = { path = "/home/endes/Descargas/udbserver"}
+#udbserver = { path = "/home/endes/Descargas/udbserver"}
 

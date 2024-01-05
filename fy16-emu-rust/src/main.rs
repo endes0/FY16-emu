@@ -1,7 +1,11 @@
 use log::{error, trace, warn};
+use modules::{serial, timer};
 use simplelog::*;
 use unicorn_engine::unicorn_const::{uc_error, Arch, HookType, MemType, Mode};
 use unicorn_engine::{RegisterARM, Unicorn};
+
+use std::cell::RefCell;
+use std::sync::Arc;
 
 #[macro_use]
 extern crate num_derive;
@@ -12,7 +16,7 @@ extern crate bitfield;
 
 use std::fs::File;
 
-use crate::tkernel_utils::{TkFunIds, AltTkFunIds};
+use crate::tkernel_utils::{AltTkFunIds, TkFunIds};
 use crate::utils::{dummy_map, Module};
 
 mod mem_map;
@@ -20,6 +24,16 @@ mod tkernel_utils;
 mod utils;
 
 mod modules;
+
+struct Device {
+    serial: Arc<RefCell<modules::serial::Serial>>,
+    unk3: Arc<RefCell<modules::unk3::Unk3>>,
+    unk4: Arc<RefCell<modules::unk4::Unk4>>,
+    unk8: Arc<RefCell<modules::unk8::Unk8>>,
+    unk71: Arc<RefCell<modules::unkf71::Unkf71>>,
+    sflu: Arc<RefCell<modules::sflu::Sflu>>,
+    timer: Arc<RefCell<modules::timer::Timer>>,
+}
 
 fn hook_mem_invalid(
     mu: &mut Unicorn<()>,
@@ -40,33 +54,7 @@ fn hook_mem_invalid(
     true
 }
 
-fn hook_mem_read(
-    mu: &mut Unicorn<()>,
-    _access: MemType,
-    address: u64,
-    size: usize,
-    _value: i64,
-) -> bool {
-    log::trace!(
-        "R 0x{:8x} {:x}",
-        address,
-        mu.mem_read_as_vec(address, size).unwrap()[0]
-    );
-    true
-}
-
-fn hook_mem_write(
-    mu: &mut Unicorn<()>,
-    _access: MemType,
-    address: u64,
-    _size: usize,
-    value: i64,
-) -> bool {
-    log::trace!("W 0x{:8x} 0x{:x}", address, value);
-    true
-}
-
-fn hook_code(uc: &mut Unicorn<()>, address: u64, _size: u32) {
+fn hook_code(dev: &mut Device, uc: &mut Unicorn<()>, address: u64, _size: u32) {
     match address {
         0x1560 | 0x1804 | 0x6094 => println!(
             "memcpy from: 0x{:x}, to: 0x{:x}, size: 0x{:x}",
@@ -89,6 +77,14 @@ fn hook_code(uc: &mut Unicorn<()>, address: u64, _size: u32) {
             "tkernel progress: {}",
             uc.reg_read(RegisterARM::R0).unwrap()
         ),
+        0x45c5da50 => println!("syscre reached"),
+        0x45db84e0 => println!("usermain reached"),
+        0x45e21ae4 => {
+            dev.timer.borrow_mut().started = true;
+            // hook code
+            //uc.add_code_hook(1, 0, hook_code_trace)
+            //    .expect("failed to add code hook");
+        }
         //0x15c08 => println!("FUN_00015c08: addr 0x{:x}-0x{:x} len {:x}", uc.reg_read(RegisterARM::R0).unwrap(), uc.reg_read(RegisterARM::R1).unwrap(), uc.reg_read(RegisterARM::R2).unwrap()),
         /*0x164dc => {
             let mem = uc.mem_read_as_vec(uc.reg_read(RegisterARM::R0).unwrap(), 4).unwrap();
@@ -99,12 +95,6 @@ fn hook_code(uc: &mut Unicorn<()>, address: u64, _size: u32) {
         },*/
 
         //0x45e43978 =>  udbserver::udbserver(uc, 1234, 0).expect("Failed to start udbserver"),
-
-        /*0x1193c => {
-            // enable memory read/write trace
-            uc.add_mem_hook(HookType::MEM_READ, 1, 0, hook_mem_read).expect("failed to add memory read hook");
-            uc.add_mem_hook(HookType::MEM_WRITE, 1, 0, hook_mem_write).expect("failed to add memory write hook");
-        },*/
 
         /*0x11940 => {
             // stop emulation
@@ -191,10 +181,24 @@ fn hook_intr(uc: &mut Unicorn<()>, intno: u32) {
         }
         4 => {
             error!(
-                "pausing at interrupt 4 (Data abort) (PC: {:x})",
+                "Terminating at interrupt 4 (Data abort) (PC: {:x})",
                 uc.reg_read(RegisterARM::PC).unwrap()
             );
-            udbserver::udbserver(uc, 1234, 0).expect("Failed to start udbserver");
+            //udbserver::udbserver(uc, 1234, 0).expect("Failed to start udbserver");
+
+            // Print registers
+            println!("PC: 0x{:x}", uc.reg_read(RegisterARM::PC).unwrap());
+            println!("SP: 0x{:x}", uc.reg_read(RegisterARM::SP).unwrap());
+            for i in 0..=10 {
+                println!(
+                    "R{}: 0x{:x}",
+                    i,
+                    uc.reg_read(i + i32::from(RegisterARM::R0)).unwrap()
+                );
+            }
+
+            // exit
+            uc.emu_stop().expect("failed to stop emulation");
         }
         _ => {
             error!(
@@ -250,13 +254,6 @@ fn main() {
 
     mem_map::map_memory(emu);
 
-    emu.add_mem_hook(HookType::MEM_INVALID, 1, 0, hook_mem_invalid)
-        .expect("failed to add memory hook");
-    emu.add_code_hook(1, 0, hook_code)
-        .expect("failed to add code hook");
-    emu.add_intr_hook(hook_intr)
-        .expect("failed to add interrupt hook");
-
     // Load modules
     let serial = modules::serial::Serial {};
     let unk3 = modules::unk3::Unk3 {};
@@ -264,13 +261,32 @@ fn main() {
     let unk8 = modules::unk8::Unk8 {};
     let unk71 = modules::unkf71::Unkf71::new();
     let sflu = modules::sflu::Sflu::new();
+    let timer = timer::Timer::new();
 
-    serial.load(emu);
-    unk3.load(emu);
-    unk4.load(emu);
-    unk8.load(emu);
-    unk71.load(emu);
-    sflu.load(emu);
+    let mut device = Device {
+        serial: serial.load(emu),
+        unk3: unk3.load(emu),
+        unk4: unk4.load(emu),
+        unk8: unk8.load(emu),
+        unk71: unk71.load(emu),
+        sflu: sflu.load(emu),
+        timer: timer.load(emu),
+    };
+    let dev_ref = Arc::new(RefCell::new(device));
+
+    // Add hooks
+    emu.add_mem_hook(HookType::MEM_INVALID, 1, 0, hook_mem_invalid)
+        .expect("failed to add memory hook");
+    emu.add_code_hook(
+        1,
+        0,
+        move |uc: &mut Unicorn<()>, address: u64, _size: u32| {
+            hook_code(&mut dev_ref.borrow_mut(), uc, address, _size);
+        },
+    )
+    .expect("failed to add code hook");
+    emu.add_intr_hook(hook_intr)
+        .expect("failed to add interrupt hook");
 
     // Load roms
     utils::load_mem_file(

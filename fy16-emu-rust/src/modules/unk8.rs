@@ -3,6 +3,9 @@ use log::trace;
 
 use crate::utils::Module;
 
+use std::cell::RefCell;
+use std::sync::Arc;
+
 pub struct Unk8 {
     
 }
@@ -25,7 +28,9 @@ impl Unk8 {
 }
 
 impl Module for Unk8 {
-    fn load(self, mc: &mut Unicorn<()>) {
+    fn load(self, mc: &mut Unicorn<()>) -> Arc<RefCell<Self>> {
         mc.mmio_map(crate::mem_map::IO_UNK8_START, crate::mem_map::IO_UNK8_LENGTH, Some(Self::unk_read), Some(Self::unk_write)).expect("failed to map unk8");
+
+        Arc::new(RefCell::new(self))
     }
 }

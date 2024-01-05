@@ -4,6 +4,9 @@ use log::trace;
 
 use crate::utils::Module;
 
+use std::cell::RefCell;
+use std::sync::Arc;
+
 pub struct Unkf71 {
     // buf
     buf: Vec<u8>,
@@ -33,8 +36,8 @@ impl Unkf71 {
             0x490 => self.buf.push(value as u8),
             0x48e => {
                 // Flush to a file
-                let mut file = std::fs::File::create(format!("unkf71/{}.bin", self.n)).expect("failed to create file");
-                file.write_all(&self.buf).expect("failed to write file");
+                //let mut file = std::fs::File::create(format!("unkf71/{}.bin", self.n)).expect("failed to create file");
+                //file.write_all(&self.buf).expect("failed to write file");
                 trace!("unkf71: 0x490 buffer flushed (size: {})", self.buf.len());
                 self.buf.clear();
                 self.n += 1;
@@ -46,10 +49,14 @@ impl Unkf71 {
 }
 
 impl Module for Unkf71 {
-    fn load(mut self, mc: & mut Unicorn<()>) {
+    fn load(self, mc: &mut Unicorn<()>) -> Arc<RefCell<Self>> {
+        let self_ref = Arc::new(RefCell::new(self));
+        let self_ref_clone = self_ref.clone();
         let w_clbk = move |uc: &mut Unicorn<()>, addr: u64, _size: usize, value: u64| {
-            self.unk_write(uc, addr, _size, value);
+            self_ref.borrow_mut().unk_write(uc, addr, _size, value);
         };
         mc.mmio_map(crate::mem_map::IO_UNKF0071_START, crate::mem_map::IO_UNKF0071_LENGTH, Some(Self::unk_read), Some(w_clbk)).expect("failed to map unkf00071");
+
+        self_ref_clone
     }
 }

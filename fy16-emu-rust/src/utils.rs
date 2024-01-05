@@ -6,6 +6,9 @@ use log::trace;
 use std::fs::File;
 use std::io::prelude::*;
 
+use std::cell::RefCell;
+use std::sync::Arc;
+
 pub fn mirror_map(mc: &mut Unicorn<()>, start: u64, length: usize, mirror_addr:u64 ) {
     let mirror_read = move |uc: &mut Unicorn<()>, addr: u64, _size: usize| -> u64 {
         let mirror_addr = mirror_addr + addr;
@@ -61,5 +64,5 @@ pub fn dump_mem_file(mc: &mut Unicorn<()>, addr: u64, length: usize, path: &'sta
 }
 
 pub trait Module {
-    fn load(self, mc: & mut Unicorn<()>);
+    fn load(self, mc: &mut Unicorn<()>) -> Arc<RefCell<Self>>;
 }
