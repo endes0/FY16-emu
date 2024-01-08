@@ -1,5 +1,5 @@
 use log::{error, trace, warn};
-use modules::{serial, timer};
+use modules::{serial, timer, unk5};
 use simplelog::*;
 use unicorn_engine::unicorn_const::{uc_error, Arch, HookType, MemType, Mode};
 use unicorn_engine::{RegisterARM, Unicorn};
@@ -29,6 +29,7 @@ struct Device {
     serial: Arc<RefCell<modules::serial::Serial>>,
     unk3: Arc<RefCell<modules::unk3::Unk3>>,
     unk4: Arc<RefCell<modules::unk4::Unk4>>,
+    unk5: Arc<RefCell<modules::unk5::Unk5>>,
     unk8: Arc<RefCell<modules::unk8::Unk8>>,
     unk71: Arc<RefCell<modules::unkf71::Unkf71>>,
     sflu: Arc<RefCell<modules::sflu::Sflu>>,
@@ -79,11 +80,12 @@ fn hook_code(dev: &mut Device, uc: &mut Unicorn<()>, address: u64, _size: u32) {
         ),
         0x45c5da50 => println!("syscre reached"),
         0x45db84e0 => println!("usermain reached"),
+        0x45e0b618 => println!("timer interrupt routine reached"),
         0x45e21ae4 => {
             dev.timer.borrow_mut().started = true;
             // hook code
-            //uc.add_code_hook(1, 0, hook_code_trace)
-            //    .expect("failed to add code hook");
+            uc.add_code_hook(1, 0, hook_code_trace)
+                .expect("failed to add code hook");
         }
         //0x15c08 => println!("FUN_00015c08: addr 0x{:x}-0x{:x} len {:x}", uc.reg_read(RegisterARM::R0).unwrap(), uc.reg_read(RegisterARM::R1).unwrap(), uc.reg_read(RegisterARM::R2).unwrap()),
         /*0x164dc => {
@@ -102,6 +104,13 @@ fn hook_code(dev: &mut Device, uc: &mut Unicorn<()>, address: u64, _size: u32) {
             // dump memory
             utils::dump_mem_file(uc, mem_map::RAM_START, mem_map::RAM_LENGTH, "out/ram.bin");
         },*/
+        0x45e00c50 => {
+            println!(
+                "Register_int: {:x} 0x{:x}",
+                uc.reg_read(RegisterARM::R0).unwrap(),
+                uc.reg_read(RegisterARM::R1).unwrap()
+            );
+        }
         0x45490428 => {
             println!("debugPrint: 0x{:x}", uc.reg_read(RegisterARM::R0).unwrap());
         }
@@ -258,6 +267,7 @@ fn main() {
     let serial = modules::serial::Serial {};
     let unk3 = modules::unk3::Unk3 {};
     let unk4 = modules::unk4::Unk4 {};
+    let unk5 = modules::unk5::Unk5 {};
     let unk8 = modules::unk8::Unk8 {};
     let unk71 = modules::unkf71::Unkf71::new();
     let sflu = modules::sflu::Sflu::new();
@@ -267,6 +277,7 @@ fn main() {
         serial: serial.load(emu),
         unk3: unk3.load(emu),
         unk4: unk4.load(emu),
+        unk5: unk5.load(emu),
         unk8: unk8.load(emu),
         unk71: unk71.load(emu),
         sflu: sflu.load(emu),

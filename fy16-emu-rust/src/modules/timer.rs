@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::vec;
 
 use log::trace;
-use unicorn_engine::unicorn_const::Permission;
+use unicorn_engine::RegisterARM;
 use unicorn_engine::Unicorn;
 
 use crate::utils::Module;
@@ -23,9 +23,29 @@ impl Timer {
         }
         self.cycles += 1;
         if self.cycles >= self.target_cycles {
+            let pc = uc.reg_read(RegisterARM::PC).unwrap();
+            let cpsr = uc.reg_read(RegisterARM::CPSR).unwrap();
+
+            //check if IRQ are enabled (cpsr[7])
+            if (cpsr & 0x80) != 0 {
+                trace!("timer interrupt skipped because IRQ are disabled (cpsr = {:x})", cpsr);
+                return;
+            }
+
             self.cycles = 0;
             trace!("timer interrupt");
-            uc.set_pc(0x45000000).expect("failed to set PC");
+            // copy cpsr to spsr
+            uc.reg_write(RegisterARM::SPSR, cpsr)
+                .expect("failed to write register");
+            // set mode svc in cpsr
+            uc.reg_write(RegisterARM::CPSR, (cpsr & !0xF) | 0x12)
+                .expect("failed to write register");
+            // set r14 to pc
+            uc.reg_write(RegisterARM::R14, pc-4)
+                .expect("failed to write register");
+
+            uc.reg_write(RegisterARM::PC, 0xFFFF0018)
+                .expect("failed to write register");
         }
     }
 

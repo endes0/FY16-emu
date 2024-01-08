@@ -108,7 +108,7 @@ use crate::utils;
         utils::dummy_map(mc, "GOBI".to_string(), GOBI_START, GOBI_LENGTH);
         utils::dummy_map(mc, "IO_ETHERNET".to_string(), IO_ETH_START, IO_ETH_LENGTH);
         utils::dummy_map(mc, "IO_EHCI_HOST".to_string(), IO_EHCI_HOST_START, IO_EHCI_HOST_LENGTH);
-        utils::dummy_map(mc, "IO_UNK5".to_string(), IO_UNK5_START, IO_UNK5_LENGTH);
+        //utils::dummy_map(mc, "IO_UNK5".to_string(), IO_UNK5_START, IO_UNK5_LENGTH);
         utils::dummy_map(mc, "IO_UNK9".to_string(), IO_UNK9_START, IO_UNK9_LENGTH);
         utils::dummy_map(mc, "IO_EHCI".to_string(), IO_EHCI_START, IO_EHCI_LENGTH);
         utils::dummy_map(mc, "IO_ASIC_SYSCU".to_string(), IO_ASIC_SYSCU_START, IO_ASIC_SYSCU_LENGTH);
