@@ -54,6 +54,11 @@ config DIGIC
     select PTIMER
     select PFLASH_CFI02
 
+config FY16
+    bool
+    default y
+    depends on TCG && ARM
+
 config EXYNOS4
     bool
     default y

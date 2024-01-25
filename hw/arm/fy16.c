@@ -2,7 +2,7 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "qemu/module.h"
-#include "hw/arm/digic.h"
+#include "hw/arm/fy16.h"
 #include "hw/qdev-properties.h"
 #include "sysemu/sysemu.h"
 
@@ -44,7 +44,7 @@ struct Fy16Unimplemented {
     const char *device_name;
     hwaddr base;
     hwaddr size;
-} unimplemented[] = {
+} fy16_unimplemented[] = {
     { "GOBI",  fy16_memmap[GOBI], 0x400000 },
     { "ETHERNET", fy16_memmap[ETH], 0x2000 },
     { "EHCI_HOST", fy16_memmap[EHCI_HOST], 0x1000 },
@@ -53,7 +53,7 @@ struct Fy16Unimplemented {
     { "ASIC_SYSCU", fy16_memmap[ASIC_SYSCU], 0x2000 },
     { "UNK6", fy16_memmap[UNK6], 0x1000 },
     { "UNK7", fy16_memmap[UNK7], 0x1000 },
-    { "IDC", fy16_memmap[IDC], 0x1000 },,
+    { "IDC", fy16_memmap[IDC], 0x1000 },
     { "SPIU", fy16_memmap[SPIU], 0x1000 },
     { "FLASH_BASE", fy16_memmap[FLASH_BASE], 0x1000000 }
 };
@@ -61,7 +61,7 @@ struct Fy16Unimplemented {
 static void fy16_init(Object *obj)
 {
     Fy16State *s = FY16(obj);
-    int i;
+    //int i;
 
     object_initialize_child(obj, "cpu", &s->cpu, ARM_CPU_TYPE_NAME("arm1176"));
 
@@ -69,11 +69,11 @@ static void fy16_init(Object *obj)
     //object_initialize_child(obj, "uart", &s->uart, TYPE_DIGIC_UART);
 }
 
-static void digic_realize(DeviceState *dev, Error **errp)
+static void fy16_realize(DeviceState *dev, Error **errp)
 {
-    DigicState *s = FY16(dev);
-    SysBusDevice *sbd;
-    int i;
+    Fy16State *s = FY16(dev);
+    //SysBusDevice *sbd;
+    //int i;
 
     if (!object_property_set_bool(OBJECT(&s->cpu), "reset-hivecs", true,
                                   errp)) {
@@ -97,7 +97,7 @@ static void fy16_class_init(ObjectClass *oc, void *data)
 {
     DeviceClass *dc = DEVICE_CLASS(oc);
 
-    dc->realize = digic_realize;
+    dc->realize = fy16_realize;
     /* Reason: Uses serial_hds in the realize function --> not usable twice */
     dc->user_creatable = false;
 }
