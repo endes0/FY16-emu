@@ -30,6 +30,20 @@ struct Fy16State {
   DeviceState parent_obj;
   /*< public >*/
 
+
+  MemoryRegion rom1;
+  MemoryRegion rom2;
+
+  MemoryRegion rom1_remap;
+  MemoryRegion rom2_remap;
+  MemoryRegion ram_remap1;
+  MemoryRegion ram_remap2;
+  MemoryRegion ram_remap3;
+
+  MemoryRegion msg_ram;
+
+  //DeviceState *serial0;
+
   ARMCPU cpu;
 };
 
@@ -64,5 +78,8 @@ enum {
   SPIU,
   FLASH_BASE
 };
+
+/* sh_serial.c */
+#define TYPE_SH_SERIAL "sh-serial"
 
 #endif /* HW_ARM_FY16_H */

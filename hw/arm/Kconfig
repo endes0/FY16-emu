@@ -58,6 +58,7 @@ config FY16
     bool
     default y
     depends on TCG && ARM
+    select SH_SCI
 
 config EXYNOS4
     bool
