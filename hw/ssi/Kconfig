@@ -20,3 +20,7 @@ config XILINX_SPIPS
 config STM32F2XX_SPI
     bool
     select SSI
+
+config SOC09S_SFLU
+    bool
+    select SSI
