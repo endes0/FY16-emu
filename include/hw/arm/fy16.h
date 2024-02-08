@@ -41,6 +41,7 @@ struct Fy16State {
   MemoryRegion ram_remap3;
 
   MemoryRegion msg_ram;
+  MemoryRegion asiociou;
 
   //DeviceState *serial0;
 
@@ -81,5 +82,6 @@ enum {
 
 /* sh_serial.c */
 #define TYPE_SH_SERIAL "sh-serial"
+#define SH_SERIAL_FEAT_SCIF (1 << 0)
 
 #endif /* HW_ARM_FY16_H */

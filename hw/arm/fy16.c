@@ -4,6 +4,7 @@
 #include "qemu/module.h"
 #include "hw/qdev-core.h"
 #include "hw/sysbus.h"
+#include "hw/misc/unimp.h"
 #include "hw/qdev-properties.h"
 #include "hw/loader.h"
 #include "sysemu/sysemu.h"
@@ -44,6 +45,28 @@ struct Fy16Unimplemented {
                           {"IDC", fy16_memmap[IDC], 0x1000},
                           {"SPIU", fy16_memmap[SPIU], 0x1000},
                           {"FLASH_BASE", fy16_memmap[FLASH_BASE], 0x1000000}};
+
+/* ASICIOU */
+
+static void fy16_asiociou_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_asiociou_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_asiociou_read(void *opaque, hwaddr addr, unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_asiociou_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+  return 0;
+}
+
+static const MemoryRegionOps fy16_asiociou_ops = {
+    .read = fy16_asiociou_read, .write = fy16_asiociou_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
 
 static void fy16_init(Object *obj) {
   Fy16State *s = FY16(obj);
@@ -106,14 +129,29 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
   memory_region_init_ram(&s->msg_ram, OBJECT(dev), "msg_ram", 0x4000, errp);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[MSG_RAM],
                               &s->msg_ram);
+
   /* SERIAL 0 */
   DeviceState *serial0 = qdev_new(TYPE_SH_SERIAL);
   serial0->id = g_strdup("serial0");
   qdev_prop_set_chr(serial0, "chardev", serial_hd(0));
-  if (!sysbus_realize(SYS_BUS_DEVICE(serial0), errp)) {
+  qdev_prop_set_uint8(serial0, "features", SH_SERIAL_FEAT_SCIF);
+  if (!sysbus_realize_and_unref(SYS_BUS_DEVICE(serial0), errp)) {
     return;
   }
   sysbus_mmio_map(SYS_BUS_DEVICE(serial0), 0, fy16_memmap[SERIAL1]);
+
+  /* ASICIOU */
+  memory_region_init_io(&s->asiociou, OBJECT(dev), &fy16_asiociou_ops, s,
+                        "asiociou", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[ASICIOU],
+                              &s->asiociou);
+
+  /* Unimplemented devices */
+  for (int i = 0; i < ARRAY_SIZE(fy16_unimplemented); i++) {
+    create_unimplemented_device(fy16_unimplemented[i].device_name,
+                                    fy16_unimplemented[i].base,
+                                    fy16_unimplemented[i].size);
+  }
 
   /*qdev_prop_set_chr(DEVICE(&s->uart), "chardev", serial_hd(0));
   if (!sysbus_realize(SYS_BUS_DEVICE(&s->uart), errp)) {
