@@ -20,6 +20,7 @@
 
 #include "cpu.h"
 #include "qom/object.h"
+#include "hw/ssi/soc09s_sflu.h"
 
 #define TYPE_FY16 "fy16"
 
@@ -42,6 +43,8 @@ struct Fy16State {
 
   MemoryRegion msg_ram;
   MemoryRegion asiociou;
+
+  Soc09sSflu sflu;
 
   //DeviceState *serial0;
 

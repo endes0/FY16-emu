@@ -7,7 +7,9 @@
 #include "hw/misc/unimp.h"
 #include "hw/qdev-properties.h"
 #include "hw/loader.h"
+#include "sysemu/blockdev.h"
 #include "sysemu/sysemu.h"
+#include "sysemu/block-backend.h"
 #include "hw/arm/fy16.h"
 
 /* Memory map */
@@ -68,11 +70,30 @@ static const MemoryRegionOps fy16_asiociou_ops = {
 };
 
 
+static void fy16_connect_flash(Fy16State *s, int cs_no,
+                                  const char *flash_type, DriveInfo *dinfo)
+{
+    DeviceState *flash;
+    qemu_irq flash_cs;
+
+    flash = qdev_new(flash_type);
+    if (dinfo) {
+        qdev_prop_set_drive(flash, "drive", blk_by_legacy_dinfo(dinfo));
+    }
+    qdev_realize_and_unref(flash, BUS(s->sflu.ssi), &error_fatal);
+
+    flash_cs = qdev_get_gpio_in_named(flash, SSI_GPIO_CS, 0);
+    qdev_connect_gpio_out_named(DEVICE(&s->sflu), "cs", cs_no, flash_cs);
+}
+
+
 static void fy16_init(Object *obj) {
   Fy16State *s = FY16(obj);
   // int i;
 
   object_initialize_child(obj, "cpu", &s->cpu, ARM_CPU_TYPE_NAME("arm1176"));
+
+  object_initialize_child(obj, "sflu", &s->sflu, TYPE_SOC09S_SFLU);
 
   // object_initialize_child(obj, "uart", &s->uart, TYPE_DIGIC_UART);
   //object_initialize_child(obj, "serial0", &s->serial0, TYPE_SH_SERIAL);
@@ -146,20 +167,24 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
   memory_region_add_subregion(get_system_memory(), fy16_memmap[ASICIOU],
                               &s->asiociou);
 
+  /* SFLU */
+  if (!sysbus_realize(SYS_BUS_DEVICE(&s->sflu), errp)) {
+    return;
+  }
+  sysbus_mmio_map(SYS_BUS_DEVICE(&s->sflu), 0, fy16_memmap[SFLU3]);
+
+  /* connect W25Q to the sflu */
+  //TODO: direct memory map support (ROM0)
+  //TODO: load rom dump
+  fy16_connect_flash(s, 0, "w25q64", NULL);
+
+
   /* Unimplemented devices */
   for (int i = 0; i < ARRAY_SIZE(fy16_unimplemented); i++) {
     create_unimplemented_device(fy16_unimplemented[i].device_name,
                                     fy16_unimplemented[i].base,
                                     fy16_unimplemented[i].size);
   }
-
-  /*qdev_prop_set_chr(DEVICE(&s->uart), "chardev", serial_hd(0));
-  if (!sysbus_realize(SYS_BUS_DEVICE(&s->uart), errp)) {
-      return;
-  }
-
-  sbd = SYS_BUS_DEVICE(&s->uart);
-  sysbus_mmio_map(sbd, 0, DIGIC_UART_BASE);*/
 }
 
 static void fy16_class_init(ObjectClass *oc, void *data) {

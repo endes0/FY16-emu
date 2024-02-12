@@ -4,10 +4,11 @@
 
 #include "hw/sysbus.h"
 #include "hw/ssi/ssi.h"
+#include "qemu/fifo8.h"
 #include "qom/object.h"
 
 #define TYPE_SOC09S_SFLU "soc09s-sflu"
-OBJECT_DECLARE_SIMPLE_TYPE(Soc09sSflu, SOC09SFLU)
+OBJECT_DECLARE_SIMPLE_TYPE(Soc09sSflu, SOC09S_SFLU)
 
 #define SFLU_STATE 0x00
 #define SFLU_CTRL0 0x02
@@ -38,6 +39,7 @@ typedef struct Soc09sSflu {
     Fifo8 tx_fifo;
     MemoryRegion mmio;
     SSIBus *ssi;
+    qemu_irq cs_lines[4];
 } Soc09sSflu;
 
 #endif // SOC09S_SFLU_H
