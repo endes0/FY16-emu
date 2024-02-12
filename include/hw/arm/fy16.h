@@ -40,6 +40,8 @@ struct Fy16State {
   MemoryRegion ram_remap1;
   MemoryRegion ram_remap2;
   MemoryRegion ram_remap3;
+  MemoryRegion dtcm;
+  MemoryRegion itcm;
 
   MemoryRegion msg_ram;
   MemoryRegion asiociou;
@@ -47,6 +49,9 @@ struct Fy16State {
   MemoryRegion unk5;
   MemoryRegion unk8;
   MemoryRegion unkf71;
+  MemoryRegion unk9;
+
+  uint32_t dummy_time;
 
   Soc09sSflu sflu;
 
@@ -78,6 +83,7 @@ enum {
   UNK7,
   MSG_RAM,
   ASICIOU,
+  UNK10,
   UNKF0071,
   IDC,
   UNK4,

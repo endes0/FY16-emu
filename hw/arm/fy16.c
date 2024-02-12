@@ -2,6 +2,7 @@
 #include "qemu/osdep.h"
 #include "qapi/error.h"
 #include "qemu/module.h"
+#include "cpu.h"
 #include "hw/qdev-core.h"
 #include "hw/sysbus.h"
 #include "hw/misc/unimp.h"
@@ -10,24 +11,40 @@
 #include "sysemu/blockdev.h"
 #include "sysemu/sysemu.h"
 #include "sysemu/block-backend.h"
+#include "target/arm/cpregs.h"
 #include "hw/arm/fy16.h"
 
 /* Memory map */
 const hwaddr fy16_memmap[] = {
-    [ROM1] = 0x00000000,       [ROM2] = 0x04000000,
-    [ROM1_REMAP] = 0x20000000, [ROM2_REMAP] = 0x24000000,
-    [RAM] = 0x40000000,        [RAM_REMAP1] = 0x50000000,
-    [RAM_REMAP2] = 0x60000000, [RAM_REMAP3] = 0x70000000,
-    [GOBI] = 0xD0000000,       [ETH] = 0xD0400000,
-    [EHCI_HOST] = 0xD0802000,  [UNK5] = 0xE0001000,
-    [UNK9] = 0xE0003000,       [EHCI] = 0xE0800000,
-    [ASIC_SYSCU] = 0xE0812000, [SERIAL1] = 0xE0816000,
-    [SERIAL2] = 0xE0817000,    [SERIAL3] = 0xE0818000,
-    [UNK6] = 0xE0819000,       [UNK7] = 0xE081A000,
-    [MSG_RAM] = 0xE0C00000,    [ASICIOU] = 0xF0000000,
-    [UNKF0071] = 0xF0071000,   [IDC] = 0xF0080000,
-    [UNK4] = 0xF0081000,       [UNK8] = 0xF0084000,
-    [SFLU3] = 0xF0088000,      [SPIU] = 0xF0089000,
+    [ROM1] = 0x00000000,
+    [ROM2] = 0x04000000,
+    [ROM1_REMAP] = 0x20000000,
+    [ROM2_REMAP] = 0x24000000,
+    [RAM] = 0x40000000,
+    [RAM_REMAP1] = 0x50000000,
+    [RAM_REMAP2] = 0x60000000,
+    [RAM_REMAP3] = 0x70000000,
+    [GOBI] = 0xD0000000,
+    [ETH] = 0xD0400000,
+    [EHCI_HOST] = 0xD0802000,
+    [UNK5] = 0xE0001000,
+    [UNK9] = 0xE0003000,
+    [EHCI] = 0xE0800000,
+    [ASIC_SYSCU] = 0xE0812000,
+    [SERIAL1] = 0xE0816000,
+    [SERIAL2] = 0xE0817000,
+    [SERIAL3] = 0xE0818000,
+    [UNK6] = 0xE0819000,
+    [UNK7] = 0xE081A000,
+    [MSG_RAM] = 0xE0C00000,
+    [ASICIOU] = 0xF0000000,
+    [UNK10] = 0xF0005000,
+    [UNKF0071] = 0xF0071000,
+    [IDC] = 0xF0080000,
+    [UNK4] = 0xF0081000,
+    [UNK8] = 0xF0084000,
+    [SFLU3] = 0xF0088000,
+    [SPIU] = 0xF0089000,
     [FLASH_BASE] = 0xF4000000,
 };
 
@@ -39,14 +56,46 @@ struct Fy16Unimplemented {
 } fy16_unimplemented[] = {{"GOBI", fy16_memmap[GOBI], 0x400000},
                           {"ETHERNET", fy16_memmap[ETH], 0x2000},
                           {"EHCI_HOST", fy16_memmap[EHCI_HOST], 0x1000},
-                          {"UNK9", fy16_memmap[UNK9], 0x1000},
                           {"EHCI", fy16_memmap[EHCI], 0x2000},
                           {"ASIC_SYSCU", fy16_memmap[ASIC_SYSCU], 0x2000},
                           {"UNK6", fy16_memmap[UNK6], 0x1000},
                           {"UNK7", fy16_memmap[UNK7], 0x1000},
+                          {"UNK10", fy16_memmap[UNK10], 0x1000},
                           {"IDC", fy16_memmap[IDC], 0x1000},
                           {"SPIU", fy16_memmap[SPIU], 0x1000},
                           {"FLASH_BASE", fy16_memmap[FLASH_BASE], 0x1000000}};
+
+/* TCM */
+
+static uint64_t arm_cp15_dtcmrr_read(CPUARMState *env, const ARMCPRegInfo *ri) {
+  //TODO: https://developer.arm.com/documentation/ddi0301/h/system-control-coprocessor/system-control-processor-registers/c9--data-tcm-region-register
+  return 0x8000800d;
+}
+
+static uint64_t arm_cp15_itcmrr_read(CPUARMState *env, const ARMCPRegInfo *ri) {
+  //TODO: https://developer.arm.com/documentation/ddi0301/h/system-control-coprocessor/system-control-processor-registers/c9--instruction-tcm-region-register
+  return 0x80000019;
+}
+
+static void arm_cp15_dtcmrr_write(CPUARMState *env, const ARMCPRegInfo *ri,
+                                      uint64_t value) {
+  printf("arm_cp15_dtcmrr_write: value=0x%" PRIx64 "\n", value);
+}
+
+static void arm_cp15_itcmrr_write(CPUARMState *env, const ARMCPRegInfo *ri,
+                                      uint64_t value) {
+  printf("arm_cp15_itcmrr_write: value=0x%" PRIx64 "\n", value);
+}
+
+static const ARMCPRegInfo fy16_tcm_cp_reginfo[] = {
+    { .name = "DTCMRR", .cp = 15, .crn = 9, .crm = 1,
+      .opc1 = 0, .opc2 = 0, .access = PL1_RW, .resetvalue = 0x0,
+      .readfn = arm_cp15_dtcmrr_read, .writefn = arm_cp15_dtcmrr_write},
+    { .name = "ITCMRR", .cp = 15, .crn = 9, .crm = 1,
+      .opc1 = 0, .opc2 = 1, .access = PL1_RW, .resetvalue = 0x0,
+      .readfn = arm_cp15_itcmrr_read, .writefn = arm_cp15_itcmrr_write},
+};
+
 
 /* ASICIOU */
 
@@ -216,6 +265,39 @@ static const MemoryRegionOps fy16_unkf71_ops = {
 };
 
 
+/* UNK9 */
+
+static void fy16_unk9_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_unk9_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_unk9_read(void *opaque, hwaddr addr, unsigned size) {
+  Fy16State *s = opaque;
+
+  switch (addr)
+  {
+  case 0x108:
+    s->dummy_time = s->dummy_time + 1;
+    return s->dummy_time;
+  case 0x10c:
+    return 0;
+
+  default:
+    printf("fy16_unk9_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
+}
+
+static const MemoryRegionOps fy16_unk9_ops = {
+    .read = fy16_unk9_read, .write = fy16_unk9_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
 
 static void fy16_connect_flash(Fy16State *s, int cs_no,
                                   const char *flash_type, DriveInfo *dinfo)
@@ -240,6 +322,8 @@ static void fy16_init(Object *obj) {
   object_initialize_child(obj, "cpu", &s->cpu, ARM_CPU_TYPE_NAME("arm1176"));
 
   object_initialize_child(obj, "sflu", &s->sflu, TYPE_SOC09S_SFLU);
+
+  s->dummy_time = 0;
 }
 
 static void fy16_realize(DeviceState *dev, Error **errp) {
@@ -294,6 +378,17 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
   memory_region_add_subregion(get_system_memory(), fy16_memmap[MSG_RAM],
                               &s->msg_ram);
 
+  /* TCM */
+  memory_region_init_ram(&s->dtcm, OBJECT(dev), "dtcm", 4 * 1024, errp);
+  memory_region_add_subregion(get_system_memory(), 0x80008000,
+                              &s->dtcm);
+  
+  memory_region_init_ram(&s->itcm, OBJECT(dev), "itcm", 32 * 1024, errp);
+  memory_region_add_subregion(get_system_memory(), 0x80000000,
+                              &s->itcm);
+
+  define_arm_cp_regs_with_opaque(&s->cpu, fy16_tcm_cp_reginfo, s);
+
   /* SERIAL 0 */
   DeviceState *serial0 = qdev_new(TYPE_SH_SERIAL);
   serial0->id = g_strdup("serial0");
@@ -333,6 +428,12 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
                         "unkf71", 0x1000);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[UNKF0071],
                               &s->unkf71);
+  
+  /* UNK9 */
+  memory_region_init_io(&s->unk9, OBJECT(dev), &fy16_unk9_ops, s,
+                        "unk9", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[UNK9],
+                              &s->unk9);
 
   /* SFLU */
   if (!sysbus_realize(SYS_BUS_DEVICE(&s->sflu), errp)) {
