@@ -60,14 +60,161 @@ static void fy16_asiociou_write(void *opaque, hwaddr addr, uint64_t val,
 
 static uint64_t fy16_asiociou_read(void *opaque, hwaddr addr, unsigned size) {
   //Fy16State *s = opaque;
-  printf("fy16_asiociou_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
-  return 0;
+
+  switch (addr)
+  {
+  case 0x21:
+    return 0x8;
+    break;
+  
+  case 0x72:
+    return 0x10;
+    break;
+  
+  default:
+    printf("fy16_asiociou_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
 }
 
 static const MemoryRegionOps fy16_asiociou_ops = {
     .read = fy16_asiociou_read, .write = fy16_asiociou_write,
     .endianness = DEVICE_LITTLE_ENDIAN,
 };
+
+
+/* UNK4 */
+
+static void fy16_unk4_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_unk4_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_unk4_read(void *opaque, hwaddr addr, unsigned size) {
+  //Fy16State *s = opaque;
+
+  switch (addr)
+  {
+  case 0x0:
+    return 0x200;
+    break;
+  
+  default:
+    printf("fy16_unk4_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
+}
+
+static const MemoryRegionOps fy16_unk4_ops = {
+    .read = fy16_unk4_read, .write = fy16_unk4_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
+
+/* UNK5 */
+
+static void fy16_unk5_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_unk5_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_unk5_read(void *opaque, hwaddr addr, unsigned size) {
+  //Fy16State *s = opaque;
+
+  switch (addr)
+  {
+  case 0x0:
+    uint64_t intno = 0x67;
+    return (intno - 0x20) << 0x10;
+    break;
+  
+  default:
+    printf("fy16_unk5_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
+}
+
+static const MemoryRegionOps fy16_unk5_ops = {
+    .read = fy16_unk5_read, .write = fy16_unk5_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
+
+/* UNK8 */
+
+static void fy16_unk8_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_unk8_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_unk8_read(void *opaque, hwaddr addr, unsigned size) {
+  //Fy16State *s = opaque;
+
+  switch (addr)
+  {
+  case 0x800:
+    return 0x2;
+    break;
+
+  case 0x720:
+    return 0x40;
+    break;
+  
+  default:
+    printf("fy16_unk8_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
+}
+
+static const MemoryRegionOps fy16_unk8_ops = {
+    .read = fy16_unk8_read, .write = fy16_unk8_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
+
+/* UNKF71 */
+
+static void fy16_unkf71_write(void *opaque, hwaddr addr, uint64_t val,
+                                unsigned size) {
+  //Fy16State *s = opaque;
+  printf("fy16_unkf71_write: addr=0x%" HWADDR_PRIx " val=0x%" PRIx64
+         " size=%u\n",
+         addr, val, size);
+}
+
+static uint64_t fy16_unkf71_read(void *opaque, hwaddr addr, unsigned size) {
+  //Fy16State *s = opaque;
+
+  switch (addr)
+  {
+  case 0x2:
+    return 0x20;
+    break;
+  default:
+    printf("fy16_unkf71_read: addr=0x%" HWADDR_PRIx " size=%u\n", addr, size);
+    return 0;
+    break;
+  }
+}
+
+static const MemoryRegionOps fy16_unkf71_ops = {
+    .read = fy16_unkf71_read, .write = fy16_unkf71_write,
+    .endianness = DEVICE_LITTLE_ENDIAN,
+};
+
 
 
 static void fy16_connect_flash(Fy16State *s, int cs_no,
@@ -89,14 +236,10 @@ static void fy16_connect_flash(Fy16State *s, int cs_no,
 
 static void fy16_init(Object *obj) {
   Fy16State *s = FY16(obj);
-  // int i;
 
   object_initialize_child(obj, "cpu", &s->cpu, ARM_CPU_TYPE_NAME("arm1176"));
 
   object_initialize_child(obj, "sflu", &s->sflu, TYPE_SOC09S_SFLU);
-
-  // object_initialize_child(obj, "uart", &s->uart, TYPE_DIGIC_UART);
-  //object_initialize_child(obj, "serial0", &s->serial0, TYPE_SH_SERIAL);
 }
 
 static void fy16_realize(DeviceState *dev, Error **errp) {
@@ -166,6 +309,30 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
                         "asiociou", 0x1000);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[ASICIOU],
                               &s->asiociou);
+  
+  /* UNK4 */
+  memory_region_init_io(&s->unk4, OBJECT(dev), &fy16_unk4_ops, s,
+                        "unk4", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[UNK4],
+                              &s->unk4);
+  
+  /* UNK5 */
+  memory_region_init_io(&s->unk5, OBJECT(dev), &fy16_unk5_ops, s,
+                        "unk5", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[UNK5],
+                              &s->unk5);
+  
+  /* UNK8 */
+  memory_region_init_io(&s->unk8, OBJECT(dev), &fy16_unk8_ops, s,
+                        "unk8", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[UNK8],
+                              &s->unk8);
+  
+  /* UNKf71 */
+  memory_region_init_io(&s->unkf71, OBJECT(dev), &fy16_unkf71_ops, s,
+                        "unkf71", 0x1000);
+  memory_region_add_subregion(get_system_memory(), fy16_memmap[UNKF0071],
+                              &s->unkf71);
 
   /* SFLU */
   if (!sysbus_realize(SYS_BUS_DEVICE(&s->sflu), errp)) {

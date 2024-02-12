@@ -43,6 +43,10 @@ struct Fy16State {
 
   MemoryRegion msg_ram;
   MemoryRegion asiociou;
+  MemoryRegion unk4;
+  MemoryRegion unk5;
+  MemoryRegion unk8;
+  MemoryRegion unkf71;
 
   Soc09sSflu sflu;
 
