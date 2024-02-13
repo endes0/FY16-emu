@@ -84,12 +84,18 @@ enum {
   MSG_RAM,
   ASICIOU,
   UNK10,
+  UNK11,
+  UNKF0054,
+  UNK12,
+  UNK13,
+  UNKF0070,
   UNKF0071,
   IDC,
   UNK4,
   UNK8,
   SFLU3,
   SPIU,
+  UNK14,
   FLASH_BASE
 };
 

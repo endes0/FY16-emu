@@ -39,12 +39,18 @@ const hwaddr fy16_memmap[] = {
     [MSG_RAM] = 0xE0C00000,
     [ASICIOU] = 0xF0000000,
     [UNK10] = 0xF0005000,
+    [UNK11] = 0xF0050000,
+    [UNKF0054] = 0xF0054000,
+    [UNK12] = 0xF0059000,
+    [UNK13] = 0xF0060000,
+    [UNKF0070] = 0xF0070000,
     [UNKF0071] = 0xF0071000,
     [IDC] = 0xF0080000,
     [UNK4] = 0xF0081000,
     [UNK8] = 0xF0084000,
     [SFLU3] = 0xF0088000,
     [SPIU] = 0xF0089000,
+    [UNK14] = 0xF008B000,
     [FLASH_BASE] = 0xF4000000,
 };
 
@@ -61,8 +67,14 @@ struct Fy16Unimplemented {
                           {"UNK6", fy16_memmap[UNK6], 0x1000},
                           {"UNK7", fy16_memmap[UNK7], 0x1000},
                           {"UNK10", fy16_memmap[UNK10], 0x1000},
+                          {"UNK11", fy16_memmap[UNK11], 0x1000},
+                          {"UNKF0054", fy16_memmap[UNKF0054], 0x1000},
+                          {"UNK12", fy16_memmap[UNK12], 0x1000},
+                          {"UNK13", fy16_memmap[UNK13], 0x10000},
+                          {"UNKF0070", fy16_memmap[UNKF0070], 0x1000},
                           {"IDC", fy16_memmap[IDC], 0x1000},
                           {"SPIU", fy16_memmap[SPIU], 0x1000},
+                          {"UNK14", fy16_memmap[UNK14], 0x1000},
                           {"FLASH_BASE", fy16_memmap[FLASH_BASE], 0x1000000}};
 
 /* TCM */
@@ -359,17 +371,17 @@ static void fy16_realize(DeviceState *dev, Error **errp) {
 
   /* RAM ALIASES */
   memory_region_init_alias(&s->ram_remap1, OBJECT(dev), "ram_remap1",
-                           get_system_memory(), fy16_memmap[RAM], 0x1000000);
+                           get_system_memory(), fy16_memmap[RAM], 0x10000000);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[RAM_REMAP1],
                               &s->ram_remap1);
 
   memory_region_init_alias(&s->ram_remap2, OBJECT(dev), "ram_remap2",
-                           get_system_memory(), fy16_memmap[RAM], 0x1000000);
+                           get_system_memory(), fy16_memmap[RAM], 0x10000000);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[RAM_REMAP2],
                               &s->ram_remap2);
 
   memory_region_init_alias(&s->ram_remap3, OBJECT(dev), "ram_remap3",
-                           get_system_memory(), fy16_memmap[RAM], 0x1000000);
+                           get_system_memory(), fy16_memmap[RAM], 0x10000000);
   memory_region_add_subregion(get_system_memory(), fy16_memmap[RAM_REMAP3],
                               &s->ram_remap3);
 
