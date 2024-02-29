@@ -30,6 +30,9 @@ const hwaddr fy16_memmap[] = {
     [UNK5] = 0xE0001000,
     [UNK9] = 0xE0003000,
     [EHCI] = 0xE0800000,
+    [UNKE0809] = 0xE0809000,
+    [UNKE080F] = 0xE080F000,
+    [UNKE081] = 0xE0810000,
     [ASIC_SYSCU] = 0xE0812000,
     [SERIAL1] = 0xE0816000,
     [SERIAL2] = 0xE0817000,
@@ -51,6 +54,8 @@ const hwaddr fy16_memmap[] = {
     [SFLU3] = 0xF0088000,
     [SPIU] = 0xF0089000,
     [UNK14] = 0xF008B000,
+    [UNKF009] = 0xF0090000,
+    [UNKF010C] = 0xF010C000,
     [FLASH_BASE] = 0xF4000000,
 };
 
@@ -63,6 +68,9 @@ struct Fy16Unimplemented {
                           {"ETHERNET", fy16_memmap[ETH], 0x2000},
                           {"EHCI_HOST", fy16_memmap[EHCI_HOST], 0x1000},
                           {"EHCI", fy16_memmap[EHCI], 0x2000},
+                          {"UNKE0809", fy16_memmap[UNKE0809], 0x1000},
+                          {"UNKE080F", fy16_memmap[UNKE080F], 0x1000},
+                          {"UNKE081", fy16_memmap[UNKE081], 0x1000},
                           {"ASIC_SYSCU", fy16_memmap[ASIC_SYSCU], 0x2000},
                           {"UNK6", fy16_memmap[UNK6], 0x1000},
                           {"UNK7", fy16_memmap[UNK7], 0x1000},
@@ -75,6 +83,8 @@ struct Fy16Unimplemented {
                           {"IDC", fy16_memmap[IDC], 0x1000},
                           {"SPIU", fy16_memmap[SPIU], 0x1000},
                           {"UNK14", fy16_memmap[UNK14], 0x1000},
+                          {"UNKF009", fy16_memmap[UNKF009], 0x1000},
+                          {"UNKF010C", fy16_memmap[UNKF010C], 0x1000},
                           {"FLASH_BASE", fy16_memmap[FLASH_BASE], 0x1000000}};
 
 /* TCM */

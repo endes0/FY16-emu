@@ -83,6 +83,9 @@ enum {
   UNK7,
   MSG_RAM,
   ASICIOU,
+  UNKE0809,
+  UNKE080F,
+  UNKE081,
   UNK10,
   UNK11,
   UNKF0054,
@@ -96,6 +99,8 @@ enum {
   SFLU3,
   SPIU,
   UNK14,
+  UNKF009,
+  UNKF010C,
   FLASH_BASE
 };
 

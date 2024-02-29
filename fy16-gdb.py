@@ -7,7 +7,7 @@ class DcacheInvPrintingBreakpoint(gdb.Breakpoint):
 class TkernelProgPrintingBreakpoint(gdb.Breakpoint):
     def stop(self):
         top = gdb.newest_frame()
-        print("tkernel progress {:x}" % (top.read_register('r0')))
+        print("tkernel progress 0x%x" % (top.read_register('r0')))
 
 class InjectRamdumpBreakpoint(gdb.Breakpoint):
     def stop(self):
