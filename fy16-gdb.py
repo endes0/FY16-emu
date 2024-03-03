@@ -9,6 +9,22 @@ class TkernelProgPrintingBreakpoint(gdb.Breakpoint):
         top = gdb.newest_frame()
         print("tkernel progress 0x%x" % (top.read_register('r0')))
 
+class DebugPrintPrintingBreakpoint(gdb.Breakpoint):
+    def stop(self):
+        top = gdb.newest_frame()
+        inf = gdb.inferiors()[0]
+        current_addr = top.read_register('r0')
+        c = inf.read_memory(top.read_register('r0'), 1).tobytes()
+        while c != b'\0':
+            print(c.decode('utf-8'), end='')
+            current_addr += 1
+            c = inf.read_memory(current_addr, 1).tobytes()
+
+class RegisterIntPrintingBreakpoint(gdb.Breakpoint):
+    def stop(self):
+        top = gdb.newest_frame()
+        print("Register_int 0x%x 0x%x" % (top.read_register('r0'), top.read_register('r1')))
+
 class InjectRamdumpBreakpoint(gdb.Breakpoint):
     def stop(self):
         top = gdb.newest_frame()
@@ -23,6 +39,9 @@ class InjectRamdumpBreakpoint(gdb.Breakpoint):
 
 DcacheInvPrintingBreakpoint("*0x15d64")
 TkernelProgPrintingBreakpoint("*0x45e26b84")
+RegisterIntPrintingBreakpoint("*0x45e00c50")
+DebugPrintPrintingBreakpoint("*0x45490428")
+DebugPrintPrintingBreakpoint("*0x45e0c92c")
 InjectRamdumpBreakpoint("*0x11944")
 
 gdb.execute("continue")
